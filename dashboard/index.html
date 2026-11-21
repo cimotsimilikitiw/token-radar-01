@@ -1,15 +1,70 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Token Radar: pre-token protocols ranked by implied value</title>
-<link rel="stylesheet" href="app.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Token Launch Radar</title>
+  <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<a class="skip" href="#board">Skip to the board</a>
-<main id="board" tabindex="-1" aria-busy="true"></main>
-<script src="../data.js"></script>
-<script src="app.js"></script>
+  <div class="page">
+    <header class="hero">
+      <p class="eyebrow">DefiLlama snapshot · pre-token board</p>
+      <h1>Token Launch Radar</h1>
+      <p class="lede" id="lede">Ranked pre-token protocols by implied launch value, with farming plans and model inputs.</p>
+      <div class="stats" id="stats" aria-label="Summary statistics"></div>
+    </header>
+
+    <section class="controls" aria-label="Board controls">
+      <label class="control">
+        <span>Search</span>
+        <input id="q" type="search" placeholder="Name, slug, category, chain" autocomplete="off">
+      </label>
+      <label class="control">
+        <span>Category</span>
+        <select id="category"><option value="">All categories</option></select>
+      </label>
+      <label class="control">
+        <span>Chain</span>
+        <select id="chain"><option value="">All chains</option></select>
+      </label>
+      <label class="control">
+        <span>View</span>
+        <select id="view">
+          <option value="board">Pre-token board</option>
+          <option value="live">Live tokens</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="panel" aria-label="Board">
+      <div class="panel-head">
+        <div>
+          <h2 id="panel-title">Pre-token board</h2>
+          <p class="muted" id="panel-sub">Loading…</p>
+        </div>
+        <div class="pill" id="count-pill">0 rows</div>
+      </div>
+      <div class="table-wrap">
+        <table class="board" id="board-table">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <p class="empty muted" id="empty" hidden>No rows match the current filters.</p>
+    </section>
+
+    <footer class="foot">
+      <p id="foot-meta" class="muted"></p>
+    </footer>
+  </div>
+
+  <dialog id="detail" class="detail">
+    <form method="dialog" class="detail-close"><button class="btn" aria-label="Close details">Close</button></form>
+    <article id="detail-body"></article>
+  </dialog>
+
+  <script src="../data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
