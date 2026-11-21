@@ -4,41 +4,34 @@
 [![rank](https://make.fun/badge/token-radar-01/cimotsimilikitiw/token-radar-01/rank.svg)](https://make.fun/bounty/token-radar-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
 [![reward](https://make.fun/badge/token-radar-01/cimotsimilikitiw/token-radar-01/reward.svg)](https://make.fun/bounty/token-radar-01?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
 
-Deterministic token launch radar for the `token-radar-01` bounty. It reads the sealed DefiLlama snapshot, scores pre-token protocols by implied launch value, and emits a ranked board plus a static dashboard dossier.
+Deterministic pre-token valuation and farming terminal for the `token-radar-01` bounty. It reads the sealed DefiLlama snapshot, calibrates category `mcap_usd / tvl_usd` multiples from live-token peers in the snapshot, ranks pre-token protocols by implied launch valuation, and emits a static offline dashboard dossier.
 
-## What it produces
+## Outputs
 
-- `board.json` — ranked board (200 rows, contiguous ranks, sorted by implied value desc then TVL desc then slug asc).
-- `data.js` — `window.RADAR` payload for the dashboard.
-- `dashboard/` — static offline dashboard (index.html, app.css, app.js).
-- `screenshots/` — 3 headless Chromium captures of distinct dashboard states.
-- `dossier.json` — generated last by `vendor/makefun-board.ts:buildDossier`.
+- `board.json` — ranked board (198 rows: all 40 watchlist protocols + 158 early-radar pre-token protocols below the $50M floor, contiguous ranks `1..198`).
+- `data.js` — `window.RADAR` payload including `rows`, `category_stats`, and `live_comps` (128 live-token peer benchmarks).
+- `dashboard/` — static offline terminal (`index.html`, `app.css`, `app.js`, 34 KB total, zero network URLs) with multi-column sorting, tier/category/chain filtering, interactive Model Sandbox, SVG charts, and protocol detail drawer.
+- `screenshots/` — 4 headless Chromium captures (`1-board.png`, `2-detail.png`, `3-filtered.png`, `4-sandbox.png`).
+- `dossier.json` — canonical dossier written by `vendor/makefun-board.ts:buildDossier`.
 
-## Model
+## Valuation Model
 
-The model is deterministic and uses only snapshot fields:
+All multiples are derived empirically from the snapshot's own figures:
 
-- **Base**: `tvl_usd * base_multiple`
-- **Growth**: 7d change clamped to configured bounds, applied as a growth multiplier
-- **Maturity**: age since `listed_at` relative to snapshot `as_of`, clamped into a maturity span
-- **Implied value**: `round(base * growth_multiplier * maturity)`, minimum 1 USD
+- **Category Multiple**: median `mcap_usd / tvl_usd` of live-token protocols in the same category (blended with the global live-token median when `sample_count < 3`, clamped to `[0.04, 2.50]`).
+- **Growth Multiplier**: clamped 7-day TVL momentum (`change_7d`) weighted by `growth_weight`.
+- **Maturity Multiplier**: protocol longevity (`listed_at` to `as_of`) on a concave curve from `maturity_floor` to `1.18x`.
+- **Implied Value**: `round(tvl_usd * category_multiple * growth_multiplier * maturity_multiplier * global_scale)`.
 
-Watchlist protocols are always included when pre-token. Remaining board slots are filled by the highest implied-value pre-token candidates (excluding CEX and versioned forks).
+Each row includes 5 category- and chain-tailored `farm_steps` with explicit USD capital/gas ranges and time commitments.
 
 ## Run
 
 ```bash
-node main.ts --input <file|dir> --output <dir>
+node main.ts --input <snapshot.json|dir> --output <dir>
 ```
 
-Defaults: `MAKEFUN_INPUT_DIR` or `/input`, `MAKEFUN_OUTPUT_DIR` or `/output`.
-
-## Contract notes
-
-- Node 22, standard library only.
-- No network access.
-- Deterministic outputs for the same input.
-- `vendor/makefun-board.ts` is byte-identical to the pinned kit file.
+Defaults: `/input/snapshot.json` and `MAKEFUN_OUTPUT_DIR` or `/output`. Node 22+ standard library only.
 
 ---
 

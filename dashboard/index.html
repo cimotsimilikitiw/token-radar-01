@@ -1,68 +1,118 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Token Launch Radar</title>
+  <title>Token Radar — Pre-Token Valuation &amp; Farm Terminal</title>
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
-  <div class="page">
-    <header class="hero">
-      <p class="eyebrow">DefiLlama snapshot · pre-token board</p>
-      <h1>Token Launch Radar</h1>
-      <p class="lede" id="lede">Ranked pre-token protocols by implied launch value, with farming plans and model inputs.</p>
-      <div class="stats" id="stats" aria-label="Summary statistics"></div>
-    </header>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <div>
+        <h1>TOKEN RADAR <span class="muted">// PRE-TOKEN TERMINAL</span></h1>
+        <p class="sub" id="metaLine">Loading snapshot...</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="badge badge-ok" id="formulaBadge">Formula Check: ...</span>
+      <button type="button" class="btn btn-accent" id="sandboxBtn" aria-expanded="false">Model Sandbox</button>
+    </div>
+  </header>
 
-    <section class="controls" aria-label="Board controls">
-      <label class="control">
-        <span>Search</span>
-        <input id="q" type="search" placeholder="Name, slug, category, chain" autocomplete="off">
-      </label>
-      <label class="control">
-        <span>Category</span>
-        <select id="category"><option value="">All categories</option></select>
-      </label>
-      <label class="control">
-        <span>Chain</span>
-        <select id="chain"><option value="">All chains</option></select>
-      </label>
-      <label class="control">
-        <span>View</span>
-        <select id="view">
-          <option value="board">Pre-token board</option>
-          <option value="live">Live tokens</option>
-        </select>
-      </label>
+  <main class="shell">
+    <section class="kpis" id="kpiStrip"></section>
+
+    <section class="sandbox hidden" id="sandboxPanel" aria-label="Interactive Model Sandbox">
+      <div class="sandbox-head">
+        <div>
+          <h2>Interactive Model Sandbox</h2>
+          <p class="muted">Adjust valuation parameters to recompute implied values and live rank deltas in-browser.</p>
+        </div>
+        <div class="sandbox-actions">
+          <span class="badge" id="sandboxSummary">0 ranks shifted</span>
+          <button type="button" class="btn" id="sandboxReset">Reset Defaults</button>
+        </div>
+      </div>
+      <div class="sliders">
+        <label class="slider-card">
+          <span class="slider-top"><span>Growth Weight</span><strong id="valGrowthWeight">0.45</strong></span>
+          <input type="range" id="slGrowthWeight" min="0" max="1" step="0.05" value="0.45">
+        </label>
+        <label class="slider-card">
+          <span class="slider-top"><span>Growth Cap</span><strong id="valGrowthCap">0.65</strong></span>
+          <input type="range" id="slGrowthCap" min="0.15" max="1.25" step="0.05" value="0.65">
+        </label>
+        <label class="slider-card">
+          <span class="slider-top"><span>Maturity Floor</span><strong id="valMaturityFloor">0.72</strong></span>
+          <input type="range" id="slMaturityFloor" min="0.40" max="1.00" step="0.02" value="0.72">
+        </label>
+        <label class="slider-card">
+          <span class="slider-top"><span>Category Blend</span><strong id="valCatBlend">1.00</strong></span>
+          <input type="range" id="slCatBlend" min="0" max="1" step="0.05" value="1.00">
+        </label>
+        <label class="slider-card">
+          <span class="slider-top"><span>Global Scale</span><strong id="valGlobalScale">1.00</strong></span>
+          <input type="range" id="slGlobalScale" min="0.50" max="1.50" step="0.05" value="1.00">
+        </label>
+      </div>
     </section>
 
-    <section class="panel" aria-label="Board">
-      <div class="panel-head">
-        <div>
-          <h2 id="panel-title">Pre-token board</h2>
-          <p class="muted" id="panel-sub">Loading…</p>
+    <section class="charts">
+      <article class="panel">
+        <div class="panel-head">
+          <h2>Category Implied Opportunity</h2>
+          <span class="muted">Top 8 categories by implied valuation</span>
         </div>
-        <div class="pill" id="count-pill">0 rows</div>
+        <div id="catChart" class="chart-box"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head">
+          <h2>TVL vs. Implied Value (Log-Log)</h2>
+          <span class="legend"><i class="dot-watch"></i>Watchlist <i class="dot-early"></i>Early Radar</span>
+        </div>
+        <div id="scatterChart" class="chart-box"></div>
+      </article>
+    </section>
+
+    <section class="controls">
+      <div class="tabs" id="tierTabs">
+        <button type="button" class="tab active" data-tier="all">All Ranked</button>
+        <button type="button" class="tab" data-tier="watchlist">Watchlist &ge; $50M</button>
+        <button type="button" class="tab" data-tier="early_radar">Early Radar &lt; $50M</button>
+        <button type="button" class="tab" data-tier="live">Live Comps</button>
       </div>
-      <div class="table-wrap">
-        <table class="board" id="board-table">
-          <thead id="thead"></thead>
-          <tbody id="tbody"></tbody>
+      <div class="filters">
+        <input type="search" id="searchInput" placeholder="Search protocol, slug, chain...">
+        <select id="catSelect"><option value="">All Categories</option></select>
+        <select id="chainSelect"><option value="">All Chains</option></select>
+        <button type="button" class="btn" id="resetBtn">Reset</button>
+      </div>
+    </section>
+
+    <section class="table-wrap">
+      <div class="table-meta">
+        <span id="rowCountLabel">0 protocols</span>
+        <span class="muted">Click any row for formula audit, peer comps &amp; farm plan</span>
+      </div>
+      <div class="table-scroll">
+        <table id="boardTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
         </table>
       </div>
-      <p class="empty muted" id="empty" hidden>No rows match the current filters.</p>
     </section>
+  </main>
 
-    <footer class="foot">
-      <p id="foot-meta" class="muted"></p>
-    </footer>
-  </div>
-
-  <dialog id="detail" class="detail">
-    <form method="dialog" class="detail-close"><button class="btn" aria-label="Close details">Close</button></form>
-    <article id="detail-body"></article>
+  <dialog id="detailDrawer" class="drawer" aria-label="Protocol Valuation and Farm Plan">
+    <div class="drawer-inner" id="drawerContent"></div>
   </dialog>
+
+  <footer class="footbar">
+    <span>Empirical category MCap/TVL medians calibrated from live-token peers in the sealed snapshot.</span>
+    <span class="muted">DefiLlama record only — implied values are model estimates, not launch predictions.</span>
+  </footer>
 
   <script src="../data.js"></script>
   <script src="app.js"></script>
